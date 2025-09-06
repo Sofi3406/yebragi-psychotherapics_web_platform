@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "./../docs/ERD.png"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PATIENT
+  THERAPIST
+  ADMIN
+}
+
+model User {
+  id       String @id @default(cuid())
+  email    String @unique
+  password String
+  fullName String
+  role     Role   @default(PATIENT)
+
+  therapistProfile TherapistProfile?
+  appointments     Appointment[]
+  conversations    Conversation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TherapistProfile {
+  id              String                    @id @default(cuid())
+  user            User                      @relation(fields: [userId], references: [id])
+  userId          String                    @unique
+  bio             String?
+  licenseNumber   String?
+  specializations TherapistSpecialization[]
+  availability    AvailabilitySlot[]
+  appointments    Appointment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Specialization {
+  id          String                    @id @default(cuid())
+  name        String                    @unique
+  description String?
+  therapists  TherapistSpecialization[]
+}
+
+model TherapistSpecialization {
+  id                 String           @id @default(cuid())
+  therapistProfile   TherapistProfile @relation(fields: [therapistProfileId], references: [id])
+  therapistProfileId String
+  specialization     Specialization   @relation(fields: [specializationId], references: [id])
+  specializationId   String
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model Appointment {
+  id          String            @id @default(cuid())
+  patient     User              @relation(fields: [patientId], references: [id])
+  patientId   String
+  therapist   TherapistProfile  @relation(fields: [therapistId], references: [id])
+  therapistId String
+  slot        AvailabilitySlot  @relation(fields: [slotId], references: [id])
+  slotId      String
+  status      AppointmentStatus @default(PENDING)
+  meetLink    String?
+  payment     Payment?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AvailabilitySlot {
+  id           String           @id @default(cuid())
+  therapist    TherapistProfile @relation(fields: [therapistId], references: [id])
+  therapistId  String
+  startTime    DateTime
+  endTime      DateTime
+  isBooked     Boolean          @default(false)
+  appointments Appointment[]
+}
+
+enum PaymentStatus {
+  INITIATED
+  SUCCESS
+  FAILED
+  PENDING
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  appointment   Appointment   @relation(fields: [appointmentId], references: [id])
+  appointmentId String        @unique
+  amount        Float
+  status        PaymentStatus @default(INITIATED)
+  txRef         String        @unique
+  rawResponse   Json?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Article {
+  id          String     @id @default(cuid())
+  title       String
+  content     String
+  url         String
+  scrapeJob   ScrapeJob? @relation(fields: [scrapeJobId], references: [id])
+  scrapeJobId String?
+  createdAt   DateTime   @default(now())
+}
+
+model ScrapeJob {
+  id        String    @id @default(cuid())
+  status    String
+  articles  Article[]
+  createdAt DateTime  @default(now())
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  messages  Message[]
+  state     String?
+  ttl       DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  conversationId String
+  sender         String
+  content        String
+  createdAt      DateTime     @default(now())
+}
+
+model JobRecord {
+  id        String   @id @default(cuid())
+  type      String
+  payload   Json
+  status    String
+  createdAt DateTime @default(now())
+}
