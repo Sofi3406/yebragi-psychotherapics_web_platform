@@ -60,6 +60,8 @@ model TherapistSpecialization {
   therapistProfileId String
   specialization     Specialization   @relation(fields: [specializationId], references: [id])
   specializationId   String
+
+  @@unique([therapistProfileId, specializationId])
 }
 
 enum AppointmentStatus {
@@ -118,11 +120,12 @@ model Article {
   id          String     @id @default(cuid())
   title       String
   content     String
-  url         String
+  url         String     @unique   
   scrapeJob   ScrapeJob? @relation(fields: [scrapeJobId], references: [id])
   scrapeJobId String?
   createdAt   DateTime   @default(now())
 }
+
 
 model ScrapeJob {
   id        String    @id @default(cuid())
