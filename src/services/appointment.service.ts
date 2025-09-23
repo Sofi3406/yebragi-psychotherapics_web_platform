@@ -1,7 +1,8 @@
+// src/services/appointment.service.ts
 import prisma from "../prismaClient";
 
 export class AppointmentService {
-  // Check if a slot is available for the therapist
+  // ✅ Check therapist availability
   async checkAvailability(therapistId: string, start: Date, end: Date) {
     const slot = await prisma.availabilitySlot.findFirst({
       where: {
@@ -14,9 +15,8 @@ export class AppointmentService {
     return !!slot;
   }
 
-  // Book an appointment for a patient
+  // ✅ Book an appointment
   async bookAppointment(patientId: string, therapistId: string, start: Date, end: Date) {
-    // Step 1: find an available slot
     const slot = await prisma.availabilitySlot.findFirst({
       where: {
         therapistId,
@@ -28,23 +28,42 @@ export class AppointmentService {
 
     if (!slot) throw new Error("Slot not available");
 
-    // Step 2: create appointment
     const appointment = await prisma.appointment.create({
       data: {
         patientId,
         therapistId,
         slotId: slot.id,
-        status: "CONFIRMED", 
+        status: "CONFIRMED",
       },
     });
 
-    // Step 3: mark slot as booked
     await prisma.availabilitySlot.update({
       where: { id: slot.id },
       data: { isBooked: true },
     });
 
     return appointment;
+  }
+
+  // ✅ Add missing CRUD methods for controller
+  async createAppointment(data: any) {
+    return prisma.appointment.create({ data });
+  }
+
+  async getAppointments() {
+    return prisma.appointment.findMany({ include: { patient: true, therapist: true } });
+  }
+
+  async getAppointmentById(id: string) {
+    return prisma.appointment.findUnique({ where: { id } });
+  }
+
+  async updateAppointment(id: string, data: any) {
+    return prisma.appointment.update({ where: { id }, data });
+  }
+
+  async deleteAppointment(id: string) {
+    return prisma.appointment.delete({ where: { id } });
   }
 }
 

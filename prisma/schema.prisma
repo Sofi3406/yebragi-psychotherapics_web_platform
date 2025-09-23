@@ -72,7 +72,7 @@ enum AppointmentStatus {
 }
 
 model Appointment {
-  id          String            @id @default(cuid())
+    id       String    @id @default(uuid())
   patient     User              @relation(fields: [patientId], references: [id])
   patientId   String
   therapist   TherapistProfile  @relation(fields: [therapistId], references: [id])
@@ -106,8 +106,8 @@ enum PaymentStatus {
 
 model Payment {
   id            String   @id @default(uuid())
-  appointmentId String
-  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  appointmentId String   @unique
+  appointment   Appointment  @relation(fields: [appointmentId], references: [id])
   amount        Float
   status        String   @default("PENDING")
   txRef         String   @unique

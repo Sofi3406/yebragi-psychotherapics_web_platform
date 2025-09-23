@@ -16,7 +16,12 @@ export class UserService {
     });
 
     console.log(`📧 Mock email sent to ${email}: OTP code 123456`);
-    return { id: user.id, email: user.email, fullName: user.fullName, role: user.role };
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+    };
   }
 
   async login(email: string, password: string) {
@@ -29,19 +34,40 @@ export class UserService {
     const accessToken = jwt.sign({ sub: user.id, role: user.role }, JWT_SECRET, {
       expiresIn: "15m",
     });
-    const refreshToken = jwt.sign({ sub: user.id }, JWT_SECRET, { expiresIn: "7d" });
+    const refreshToken = jwt.sign({ sub: user.id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
-    return { accessToken, refreshToken, user: { id: user.id, email: user.email } };
+    return {
+      accessToken,
+      refreshToken,
+      user: { id: user.id, email: user.email },
+    };
   }
 
-  async refreshToken(token: string) {
+  async refresh(token: string) {
     try {
       const payload = jwt.verify(token, JWT_SECRET) as any;
-      const newAccess = jwt.sign({ sub: payload.sub }, JWT_SECRET, { expiresIn: "15m" });
-      return { accessToken: newAccess };
+      const newAccess = jwt.sign(
+        { sub: payload.sub, role: payload.role },
+        JWT_SECRET,
+        { expiresIn: "15m" }
+      );
+      return { accessToken: newAccess, refreshToken: token };
     } catch {
       throw new Error("Invalid refresh token");
     }
+  }
+
+  async verify(email: string, otp: string) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) throw new Error("User not found");
+
+    // Mock OTP verification
+    if (otp === "123456") {
+      return { success: true, message: "OTP verified" };
+    }
+    return { success: false, message: "Invalid OTP" };
   }
 }
 
