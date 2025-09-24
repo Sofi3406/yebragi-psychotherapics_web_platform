@@ -9,10 +9,16 @@ export class ArticlesController {
   }
 
   async getOne(req: Request, res: Response) {
-    const { id } = req.params;
-    const article = await prisma.article.findUnique({ where: { id } });
-    return res.json(article);
+  const { id } = req.params;
+  const article = await prisma.article.findUnique({ where: { id } });
+
+  if (!article) {
+    return res.status(404).json({ message: "Article not found" });
   }
+
+  return res.json(article);
+}
+
 
   async scrape(req: Request, res: Response) {
     const scraped = await scraperService.runSite("psychologyToday");
