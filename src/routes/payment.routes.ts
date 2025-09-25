@@ -1,10 +1,9 @@
 import { Router } from "express";
+import { paymentController } from "../controllers/payment.controller";
 
 const router = Router();
 
-// Temporary stub route
-router.get("/", (req, res) => {
-  res.json({ message: "Payments route works" });
-});
+router.post("/initiate", paymentController.initiate);
+router.post("/webhook", paymentController.webhook);
 
 export default router;
