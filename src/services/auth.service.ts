@@ -10,7 +10,7 @@ class AuthService {
       data: {
         email,
         password: hashedPassword,
-        fullName, // required
+        fullName,
       },
     });
 
@@ -24,11 +24,38 @@ class AuthService {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) throw new Error("Invalid credentials");
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || "secret", {
-      expiresIn: "1h",
-    });
+    const accessToken = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET || "secret",
+      { expiresIn: "15m" }
+    );
 
-    return { token, user };
+    const refreshToken = jwt.sign(
+      { id: user.id },
+      process.env.JWT_SECRET || "secret",
+      { expiresIn: "7d" }
+    );
+
+    return { accessToken, refreshToken, user };
+  }
+
+  async refresh(refreshToken: string) {
+    try {
+      const decoded = jwt.verify(
+        refreshToken,
+        process.env.JWT_SECRET || "secret"
+      ) as { id: string };
+
+      const accessToken = jwt.sign(
+        { id: decoded.id },
+        process.env.JWT_SECRET || "secret",
+        { expiresIn: "15m" }
+      );
+
+      return { accessToken };
+    } catch (err) {
+      throw new Error("Invalid refresh token");
+    }
   }
 }
 
