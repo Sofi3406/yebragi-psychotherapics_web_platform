@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "../prismaClient";
+import { sendOtpQueue } from "../queues/sendOtpQueue"; // ⬅️ import queue
 
 class AuthService {
   async register(email: string, password: string, fullName: string) {
@@ -14,7 +15,16 @@ class AuthService {
       },
     });
 
-    return user;
+    // 🔑 generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // enqueue OTP email job
+    await sendOtpQueue.add("send-otp", { email, otp });
+
+    return {
+      message: "User registered successfully. OTP will be sent via email.",
+      user,
+    };
   }
 
   async login(email: string, password: string) {
