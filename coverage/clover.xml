@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1758911313940" clover="3.2.0">
+  <project timestamp="1758911313941" name="All files">
+    <metrics statements="18" coveredstatements="18" conditionals="6" coveredconditionals="4" methods="3" coveredmethods="3" elements="27" coveredelements="25" complexity="0" loc="18" ncloc="18" packages="2" files="2" classes="2"/>
+    <package name="services">
+      <metrics statements="16" coveredstatements="16" conditionals="5" coveredconditionals="4" methods="2" coveredmethods="2"/>
+      <file name="payment.service.ts" path="C:\Users\Hello\Documents\yebragi\yebragi-psychotherapics_web_platform\src\services\payment.service.ts">
+        <metrics statements="16" coveredstatements="16" conditionals="5" coveredconditionals="4" methods="2" coveredmethods="2"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="20" count="2" type="stmt"/>
+        <line num="31" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="36" count="1" type="stmt"/>
+        <line num="56" count="1" type="stmt"/>
+        <line num="59" count="2" type="stmt"/>
+        <line num="67" count="1" type="stmt"/>
+        <line num="76" count="1" type="stmt"/>
+        <line num="79" count="1" type="stmt"/>
+        <line num="84" count="1" type="stmt"/>
+        <line num="88" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="utils">
+      <metrics statements="2" coveredstatements="2" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="1"/>
+      <file name="txRef.ts" path="C:\Users\Hello\Documents\yebragi\yebragi-psychotherapics_web_platform\src\utils\txRef.ts">
+        <metrics statements="2" coveredstatements="2" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="1" count="1" type="cond" truecount="0" falsecount="1"/>
+        <line num="2" count="2" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
