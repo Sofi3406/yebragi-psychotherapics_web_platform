@@ -6,10 +6,12 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/index.ts",
+    "dev": "nodemon --exec tsx src/index.ts",
     "seed": "tsx prisma/seed.ts",
     "test:seed": "tsx src/scripts/test-seed.ts",
-    "test:article": "node --loader ts-node/esm src/scripts/test-article.ts"
+    "test:article": "tsx src/scripts/test-article.ts",
+    "dev:otp-producer": "tsx src/producers/sendOtpProducer.ts",
+    "dev:otp-worker": "tsx src/workers/sendOtpWorker.ts"
   },
   "repository": {
     "type": "git",
@@ -27,8 +29,10 @@
     "bullmq": "^5.58.9",
     "express": "^5.1.0",
     "ioredis": "^5.8.0",
+    "nodemailer": "^7.0.6",
     "nodemon": "^3.1.10",
-    "prisma": "^6.15.0"
+    "prisma": "^6.15.0",
+    "redis": "^5.8.2"
   },
   "devDependencies": {
     "@mermaid-js/mermaid-cli": "^11.9.0",
@@ -36,6 +40,8 @@
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/nodemailer": "^7.0.1",
+    "@types/redis": "^4.0.10",
     "@types/supertest": "^6.0.3",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
