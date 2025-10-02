@@ -19,11 +19,15 @@ enum Role {
 }
 
 model User {
-  id       String @id @default(cuid())
-  email    String @unique
-  password String
-  fullName String
-  role     Role   @default(PATIENT)
+  id         String   @id @default(cuid())
+  email      String   @unique
+  password   String
+  fullName   String
+  role       Role     @default(PATIENT)
+
+  isVerified Boolean  @default(false)   
+  otpCode    String?                   
+  otpExpiry  DateTime?                 
 
   therapistProfile TherapistProfile?
   appointments     Appointment[]
@@ -32,6 +36,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 
 model TherapistProfile {
   id              String                    @id @default(cuid())

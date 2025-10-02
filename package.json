@@ -10,6 +10,7 @@
     "seed": "tsx prisma/seed.ts",
     "test:seed": "tsx src/scripts/test-seed.ts",
     "test:article": "tsx src/scripts/test-article.ts",
+    "test:day7": "tsx src/scripts/test-day7-features.ts",
     "dev:otp-producer": "tsx src/producers/sendOtpProducer.ts",
     "dev:otp-worker": "tsx src/workers/sendOtpWorker.ts"
   },
@@ -26,7 +27,9 @@
   "homepage": "https://github.com/Sofi3406/yebragi-psychotherapics_web_platform#readme",
   "dependencies": {
     "@prisma/client": "^6.15.0",
+    "@types/cheerio": "^0.22.35",
     "bullmq": "^5.58.9",
+    "cheerio": "^1.1.2",
     "express": "^5.1.0",
     "ioredis": "^5.8.0",
     "nodemailer": "^7.0.6",
