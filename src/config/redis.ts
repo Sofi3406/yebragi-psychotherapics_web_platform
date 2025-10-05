@@ -1,9 +1,10 @@
-import { Queue, Worker, QueueScheduler } from "bullmq";
 import IORedis from "ioredis";
+import { Queue, Worker } from "bullmq";
 
-const connection = new IORedis({
-  host: "127.0.0.1",
-  port: 6379,
-});
+export const redisConnection = new IORedis(); // ✅ now exported
 
-export { connection, Queue, Worker, QueueScheduler };
+export const createQueue = (name: string) =>
+  new Queue(name, { connection: redisConnection });
+
+export const createWorker = (name: string, processor: any) =>
+  new Worker(name, processor, { connection: redisConnection });

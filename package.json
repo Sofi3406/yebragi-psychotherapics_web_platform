@@ -12,7 +12,8 @@
     "test:article": "tsx src/scripts/test-article.ts",
     "test:day7": "tsx src/scripts/test-day7-features.ts",
     "dev:otp-producer": "tsx src/producers/sendOtpProducer.ts",
-    "dev:otp-worker": "tsx src/workers/sendOtpWorker.ts"
+    "dev:otp-worker": "tsx src/workers/sendOtpWorker.ts",
+      "dev:meet-worker": "tsx src/workers/meetWorker.ts"   
   },
   "repository": {
     "type": "git",

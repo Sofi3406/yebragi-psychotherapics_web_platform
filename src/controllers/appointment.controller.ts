@@ -1,35 +1,25 @@
 import { Request, Response } from "express";
-import { appointmentService } from "../services/appointment.service";
+import prisma from "../prismaClient";
+import { enqueueMeetCreation } from "../producers/meetProducer";
 
+export const createAppointment = async (req: Request, res: Response) => {
+  try {
+    const { patientId, therapistId, slotId } = req.body;
 
-export class AppointmentController {
-  async create(req: Request, res: Response) {
-    const appointment = await appointmentService.createAppointment(req.body);
+    const appointment = await prisma.appointment.create({
+      data: {
+        patientId,
+        therapistId,
+        slotId,
+      },
+    });
+
+    // 🔹 Enqueue meet creation job
+    await enqueueMeetCreation(appointment.id);
+
     return res.status(201).json(appointment);
+  } catch (error) {
+    console.error("Create appointment error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
-
-  async list(req: Request, res: Response) {
-    const appointments = await appointmentService.getAppointments();
-    return res.json(appointments);
-  }
-
-  async getOne(req: Request, res: Response) {
-    const { id } = req.params;
-    const appointment = await appointmentService.getAppointmentById(id);
-    return res.json(appointment);
-  }
-
-  async update(req: Request, res: Response) {
-    const { id } = req.params;
-    const appointment = await appointmentService.updateAppointment(id, req.body);
-    return res.json(appointment);
-  }
-
-  async delete(req: Request, res: Response) {
-    const { id } = req.params;
-    await appointmentService.deleteAppointment(id);
-    return res.status(204).send();
-  }
-}
-
-export const appointmentController = new AppointmentController();
+};
