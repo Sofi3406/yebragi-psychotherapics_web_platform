@@ -7,10 +7,8 @@ export const meetWorker = new Worker(
   async (job) => {
     const { appointmentId } = job.data;
 
-    // 🔹 Stub meet link generator
     const meetLink = `https://meet.fake-service.com/${appointmentId}`;
 
-    // 🔹 Update DB
     await prisma.appointment.update({
       where: { id: appointmentId },
       data: { meetLink },
