@@ -6,8 +6,12 @@ import articlesRoutes from "./routes/articles.routes";
 import chatRoutes from "./routes/chat.routes";
 import { requestLoggingMiddleware, errorLoggingMiddleware } from "./middleware/logging.middleware";
 import { logger } from "./utils/logger";
+import meetRoutes from "./routes/meet.routes";
+
 
 const app = express();
+
+app.use("/api/meet", meetRoutes);
 
 // Apply middleware
 app.use(requestLoggingMiddleware);

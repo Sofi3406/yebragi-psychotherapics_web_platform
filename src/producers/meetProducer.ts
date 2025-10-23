@@ -1,11 +1,10 @@
-// src/producers/meetProducer.ts
 import { Queue } from "bullmq";
-import { redisConnection } from "../config/redis";
+import { connection } from "../config/redis";
 
-export const meetQueue = new Queue("meet-link", {
-  connection: redisConnection,
-});
+const meetQueue = new Queue("meet-link", { connection });
 
-export async function enqueueMeetJob(appointmentId: string, title: string) {
-  return meetQueue.add("create-meet", { appointmentId, title }, { attempts: 3 });
-}
+export const enqueueMeetCreation = async (appointmentId: string) => {
+  const job = await meetQueue.add("create-meet", { appointmentId });
+  console.log("📤 Meet creation job enqueued:", job.id);
+  return job;
+};

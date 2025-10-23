@@ -43,7 +43,7 @@ async function main() {
   // 4. Finally create appointment
   const appointment = await prisma.appointment.create({
     data: {
-      id: "appt123",
+      
       patientId: patient.id,
       therapistId: therapistProfile.id,
       slotId: slot.id,

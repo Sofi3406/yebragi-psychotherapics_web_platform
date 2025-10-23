@@ -1,5 +1,4 @@
-import { Queue } from "../config/redis";
+import { Queue } from "bullmq";
+import { connection } from "../config/redis";
 
-export const sendOtpQueue = new Queue("send-otp", {
-  connection: undefined, // will use default redis from config
-});
+export const sendOtpQueue = new Queue("send-otp", { connection });
