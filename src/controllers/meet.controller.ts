@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import { meetService } from "../services/meet.service";
+import prisma from "../prismaClient";
 
 export const meetController = {
+  // Enqueue a new Meet job
   async enqueue(req: Request, res: Response) {
     try {
       const { appointmentId, title } = req.body;
@@ -16,6 +18,7 @@ export const meetController = {
     }
   },
 
+  // Get status of a single Meet job
   async getJobStatus(req: Request, res: Response) {
     try {
       const { jobId } = req.params;
@@ -28,6 +31,7 @@ export const meetController = {
     }
   },
 
+  // Get Meet link for an appointment
   async getMeetLink(req: Request, res: Response) {
     try {
       const { appointmentId } = req.params;
@@ -36,6 +40,31 @@ export const meetController = {
       return res.json({ appointmentId, meetLink: link });
     } catch (err: any) {
       console.error("Meet link fetch error:", err);
+      return res.status(500).json({ message: err.message });
+    }
+  },
+
+  // Get recent completed meet jobs for dashboard UI
+  async getJobs(req: Request, res: Response) {
+    try {
+      // Edit "take" as desired (20 is just a starting point)
+      const jobs = await prisma.appointment.findMany({
+        where: { meetLink: { not: null } },
+        orderBy: { updatedAt: "desc" },
+        take: 20,
+        select: {
+          id: true,
+          patientId: true,
+          therapistId: true,
+          slotId: true,
+          meetLink: true,
+          updatedAt: true,
+        }
+      });
+
+      return res.json({ jobs });
+    } catch (err: any) {
+      console.error("Meet jobs fetch error:", err);
       return res.status(500).json({ message: err.message });
     }
   },
