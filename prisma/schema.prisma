@@ -19,23 +19,21 @@ enum Role {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  email      String   @unique
-  password   String
-  fullName   String
-  role       Role     @default(PATIENT)
-
-  isVerified Boolean  @default(false)   
-  otpCode    String?                   
-  otpExpiry  DateTime?                 
-
+  id               String            @id @default(cuid())
+  email            String            @unique
+  password         String
+  fullName         String
+  role             Role              @default(PATIENT)
+  isVerified       Boolean           @default(false)
+  otpCode          String?
+  otpExpiry        DateTime?
   therapistProfile TherapistProfile?
   appointments     Appointment[]
   conversations    Conversation[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
+
 model Notification {
   id            String   @id @default(cuid())
   userId        String?
@@ -47,7 +45,6 @@ model Notification {
   read          Boolean  @default(false)
 }
 
-
 model TherapistProfile {
   id              String                    @id @default(cuid())
   user            User                      @relation(fields: [userId], references: [id])
@@ -57,9 +54,8 @@ model TherapistProfile {
   specializations TherapistSpecialization[]
   availability    AvailabilitySlot[]
   appointments    Appointment[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
 }
 
 model Specialization {
@@ -87,7 +83,7 @@ enum AppointmentStatus {
 }
 
 model Appointment {
-    id       String    @id @default(uuid())
+  id          String            @id @default(uuid())
   patient     User              @relation(fields: [patientId], references: [id])
   patientId   String
   therapist   TherapistProfile  @relation(fields: [therapistId], references: [id])
@@ -96,10 +92,9 @@ model Appointment {
   slotId      String
   status      AppointmentStatus @default(PENDING)
   meetLink    String?
-  payment     Payment?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  payment     Payment?          @relation("AppointmentPayment")
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }
 
 model AvailabilitySlot {
@@ -117,35 +112,42 @@ enum PaymentStatus {
   SUCCESS
   FAILED
   PENDING
+  ERROR
 }
 
 model Payment {
-  id            String   @id @default(uuid())
-  appointmentId String   @unique
-  appointment   Appointment  @relation(fields: [appointmentId], references: [id])
+  id            String        @id @default(cuid())
+  userId        String
   amount        Float
-  status        String   @default("PENDING")
-  txRef         String   @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  currency      String
+  txRef         String        @unique
+  status        PaymentStatus @default(PENDING)
+  checkoutUrl   String?
+  appointmentId String?       @unique
+  appointment   Appointment?  @relation("AppointmentPayment", fields: [appointmentId], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
-
 
 model Article {
-  id          String     @id @default(cuid())
-  title       String
-  content     String
-  url         String     @unique   
+  id           Int      @id @default(autoincrement())
+  title        String
+  url          String   @unique
+  content      String?
+  siteKey      String?       // <- must exist here
+  status       String   @default("PENDING")
+  reviewedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
   scrapeJob   ScrapeJob? @relation(fields: [scrapeJobId], references: [id])
   scrapeJobId String?
-  createdAt   DateTime   @default(now())
 }
-
 
 model ScrapeJob {
   id        String    @id @default(cuid())
   status    String
-  articles  Article[]
+  articles  Article[] // One ScrapeJob may have many Articles
   createdAt DateTime  @default(now())
 }
 

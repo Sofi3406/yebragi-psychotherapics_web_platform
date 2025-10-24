@@ -8,6 +8,10 @@ import { requestLoggingMiddleware, errorLoggingMiddleware } from "./middleware/l
 import { logger } from "./utils/logger";
 import meetRoutes from "./routes/meet.routes";
 import notifyRoutes from "./routes/notify.routes";
+import adminArticlesRoute from "./routes/adminArticles.route";
+
+
+
 
 
 const app = express();
@@ -15,7 +19,9 @@ const app = express();
 app.use(requestLoggingMiddleware);
 app.use(express.json());
 
+
 // Mount modern routes
+app.use("/api/admin/articles", adminArticlesRoute);
 app.use("/api/meet", meetRoutes);
 app.use("/api/notify", notifyRoutes);
 // Health check endpoint

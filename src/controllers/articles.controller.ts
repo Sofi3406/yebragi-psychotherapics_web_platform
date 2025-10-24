@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../prismaClient";
-import { scraperService } from "../services/scraper.service";
+import { scraperService } from "../services/scraperService";
 
 // Define the expected structure for scraped articles
 type ScrapedArticle = {

@@ -3,7 +3,8 @@ import { paymentController } from "../controllers/payment.controller";
 
 const router = Router();
 
-router.post("/initiate", paymentController.initiate);
-router.post("/webhook", paymentController.webhook);
+// Bind context to controller methods for class
+router.post("/initiate", (req, res) => paymentController.initiate(req, res));
+router.post("/webhook", (req, res) => paymentController.webhook(req, res));
 
 export default router;

@@ -1,49 +1,68 @@
+import { Prisma, PaymentStatus } from "@prisma/client";
 import prisma from "../prismaClient";
 import { generateTxRef } from "../utils/txRef";
 import axios from "axios";
 
+type InitiatePaymentOptions = {
+  userId: string;
+  appointmentId: string;
+  amount: number;
+  email: string;
+  currency: string;
+  firstName?: string;
+  lastName?: string;
+  mockChapa?: boolean;
+};
+
 export class PaymentService {
   /**
-   * Initialize a payment with Chapa
-   * @param appointmentId The appointment to link this payment to
-   * @param amount The payment amount in ETB
-   * @param mockChapa If true, mock Chapa API (for testing)
+   * Initialize a payment (mock or real)
    */
-  async initiatePayment(
-    appointmentId: string,
-    amount: number,
-    mockChapa = true
-  ) {
+  async initiatePayment(options: InitiatePaymentOptions) {
+    const {
+      userId,
+      appointmentId,
+      amount,
+      email,
+      currency,
+      firstName = "Yebragi",
+      lastName = "User",
+      mockChapa = true,
+    } = options;
+
     const txRef = generateTxRef("CHAPA");
 
-    // Save INITIATED payment in DB
+    // Save PENDING payment in DB using enum constant
     const payment = await prisma.payment.create({
       data: {
-        appointmentId, // ✅ FIXED: Payment must be linked to Appointment
+        userId,
+        appointmentId,
         amount,
+        currency,
         txRef,
-        status: "PENDING",
+        status: PaymentStatus.PENDING,
       },
     });
 
     let checkoutUrl: string;
 
     if (mockChapa) {
-      // ✅ Mock mode (useful for Jest tests)
+      // Mock checkout for testing
       checkoutUrl = `https://checkout.chapa.co/${txRef}`;
     } else {
-      // ✅ Real Chapa API call
       const response = await axios.post(
         "https://api.chapa.co/v1/transaction/initialize",
         {
           amount,
-          currency: "ETB",
-          email: "customer@example.com", // TODO: replace with real user email from appointment.patient
-          first_name: "Yebragi",
-          last_name: "User",
+          currency,
+          email,
+          first_name: firstName,
+          last_name: lastName,
           tx_ref: txRef,
           callback_url: process.env.CHAPA_CALLBACK_URL,
-          return_url: process.env.FRONTEND_RETURN_URL || "http://localhost:3000/payment/success",
+          return_url:
+            process.env.FRONTEND_RETURN_URL ??
+            "http://localhost:3000/payment/success",
         },
         {
           headers: {
@@ -53,35 +72,53 @@ export class PaymentService {
         }
       );
 
-      checkoutUrl = response.data.data.checkout_url;
+      checkoutUrl = response.data?.data?.checkout_url;
+      if (!checkoutUrl) {
+        throw new Error("Failed to receive checkout_url from Chapa");
+      }
     }
 
     return { payment, checkoutUrl };
   }
 
   /**
-   * Verify payment status from Chapa and update DB
-   * @param txRef Transaction reference
+   * Verify a payment using Chapa's verify API
    */
   async verifyPayment(txRef: string) {
-    const response = await axios.get(
-      `https://api.chapa.co/v1/transaction/verify/${txRef}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}`,
-        },
-      }
-    );
+    try {
+      const response = await axios.get(
+        `https://api.chapa.co/v1/transaction/verify/${txRef}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}`,
+          },
+        }
+      );
 
-    const status = response.data.data.status;
+      const paymentStatusString = response.data?.data?.status ?? "UNKNOWN";
+      const paymentStatus =
+        paymentStatusString === "success"
+          ? PaymentStatus.SUCCESS
+          : PaymentStatus.FAILED;
 
-    // Update Payment record with latest status
-    await prisma.payment.update({
-      where: { txRef },
-      data: { status },
-    });
+      await prisma.payment.update({
+        where: { txRef },
+        data: { status: paymentStatus },
+      });
 
-    return status;
+      return paymentStatus;
+    } catch (err) {
+      let errorMsg = "Payment verification failed";
+      if (err instanceof Error) errorMsg = err.message;
+
+      // Use enum constant for error state
+      await prisma.payment.updateMany({
+        where: { txRef },
+        data: { status: PaymentStatus.ERROR },
+      });
+
+      return errorMsg;
+    }
   }
 }
 
