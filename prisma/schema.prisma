@@ -19,58 +19,58 @@ enum Role {
 }
 
 model User {
-  id               String            @id @default(cuid())
-  email            String            @unique
+  id               String             @id @default(cuid())
+  email            String             @unique
   password         String
   fullName         String
-  role             Role              @default(PATIENT)
-  isVerified       Boolean           @default(false)
+  role             Role               @default(PATIENT)
+  isVerified       Boolean            @default(false)
   otpCode          String?
   otpExpiry        DateTime?
   therapistProfile TherapistProfile?
   appointments     Appointment[]
   conversations    Conversation[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 }
 
 model Notification {
-  id            String   @id @default(cuid())
-  userId        String?
+  id           String    @id @default(cuid())
+  userId       String?
   appointmentId String?
-  type          String
-  message       String
-  data          Json?
-  createdAt     DateTime @default(now())
-  read          Boolean  @default(false)
+  type         String
+  message      String
+  data         Json?
+  createdAt    DateTime  @default(now())
+  read         Boolean   @default(false)
 }
 
 model TherapistProfile {
-  id              String                    @id @default(cuid())
-  user            User                      @relation(fields: [userId], references: [id])
-  userId          String                    @unique
-  bio             String?
-  licenseNumber   String?
-  specializations TherapistSpecialization[]
-  availability    AvailabilitySlot[]
-  appointments    Appointment[]
-  createdAt       DateTime                  @default(now())
-  updatedAt       DateTime                  @updatedAt
+  id                String                  @id @default(cuid())
+  user              User                    @relation(fields: [userId], references: [id])
+  userId            String                  @unique
+  bio               String?
+  licenseNumber     String?
+  specializations   TherapistSpecialization[]
+  availability      AvailabilitySlot[]
+  appointments      Appointment[]
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
 }
 
 model Specialization {
-  id          String                    @id @default(cuid())
-  name        String                    @unique
-  description String?
-  therapists  TherapistSpecialization[]
+  id            String                  @id @default(cuid())
+  name          String                  @unique
+  description   String?
+  therapists    TherapistSpecialization[]
 }
 
 model TherapistSpecialization {
-  id                 String           @id @default(cuid())
-  therapistProfile   TherapistProfile @relation(fields: [therapistProfileId], references: [id])
-  therapistProfileId String
-  specialization     Specialization   @relation(fields: [specializationId], references: [id])
-  specializationId   String
+  id                  String           @id @default(cuid())
+  therapistProfile    TherapistProfile @relation(fields: [therapistProfileId], references: [id])
+  therapistProfileId  String
+  specialization      Specialization   @relation(fields: [specializationId], references: [id])
+  specializationId    String
 
   @@unique([therapistProfileId, specializationId])
 }
@@ -83,28 +83,28 @@ enum AppointmentStatus {
 }
 
 model Appointment {
-  id          String            @id @default(uuid())
-  patient     User              @relation(fields: [patientId], references: [id])
-  patientId   String
-  therapist   TherapistProfile  @relation(fields: [therapistId], references: [id])
-  therapistId String
-  slot        AvailabilitySlot  @relation(fields: [slotId], references: [id])
-  slotId      String
-  status      AppointmentStatus @default(PENDING)
-  meetLink    String?
-  payment     Payment?          @relation("AppointmentPayment")
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id            String              @id @default(uuid())
+  patient       User                @relation(fields: [patientId], references: [id])
+  patientId     String
+  therapist     TherapistProfile    @relation(fields: [therapistId], references: [id])
+  therapistId   String
+  slot          AvailabilitySlot    @relation(fields: [slotId], references: [id])
+  slotId        String
+  status        AppointmentStatus   @default(PENDING)
+  meetLink      String?
+  payment       Payment?            @relation("AppointmentPayment")
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 }
 
 model AvailabilitySlot {
-  id           String           @id @default(cuid())
-  therapist    TherapistProfile @relation(fields: [therapistId], references: [id])
-  therapistId  String
-  startTime    DateTime
-  endTime      DateTime
-  isBooked     Boolean          @default(false)
-  appointments Appointment[]
+  id            String           @id @default(cuid())
+  therapist     TherapistProfile @relation(fields: [therapistId], references: [id])
+  therapistId   String
+  startTime     DateTime
+  endTime       DateTime
+  isBooked      Boolean          @default(false)
+  appointments  Appointment[]
 }
 
 enum PaymentStatus {
@@ -116,64 +116,67 @@ enum PaymentStatus {
 }
 
 model Payment {
-  id            String        @id @default(cuid())
+  id            String          @id @default(cuid())
   userId        String
   amount        Float
   currency      String
-  txRef         String        @unique
-  status        PaymentStatus @default(PENDING)
+  txRef         String          @unique
+  status        PaymentStatus   @default(PENDING)
   checkoutUrl   String?
-  appointmentId String?       @unique
-  appointment   Appointment?  @relation("AppointmentPayment", fields: [appointmentId], references: [id])
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  appointmentId String?         @unique
+  appointment   Appointment?    @relation("AppointmentPayment", fields: [appointmentId], references: [id])
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }
 
 model Article {
-  id           Int      @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   title        String
-  url          String   @unique
+  url          String        @unique
   content      String?
-  siteKey      String?       // <- must exist here
-  status       String   @default("PENDING")
+  siteKey      String?
+  status       String        @default("PENDING")
   reviewedAt   DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
-  scrapeJob   ScrapeJob? @relation(fields: [scrapeJobId], references: [id])
-  scrapeJobId String?
+  hidden       Boolean       @default(false)
+  reviewStatus String?       // "APPROVED", "REJECTED", etc.—for moderation
+
+  scrapeJob    ScrapeJob?    @relation(fields: [scrapeJobId], references: [id])
+  scrapeJobId  String?
 }
 
 model ScrapeJob {
-  id        String    @id @default(cuid())
-  status    String
-  articles  Article[] // One ScrapeJob may have many Articles
-  createdAt DateTime  @default(now())
+  id         String     @id @default(cuid())
+  status     String
+  articles   Article[]  // One ScrapeJob may have many Articles
+  createdAt  DateTime   @default(now())
 }
 
 model Conversation {
-  id        String    @id @default(cuid())
-  user      User      @relation(fields: [userId], references: [id])
-  userId    String
-  messages  Message[]
-  state     String?
-  ttl       DateTime?
-  createdAt DateTime  @default(now())
+  id          String        @id @default(cuid())
+  user        User          @relation(fields: [userId], references: [id])
+  userId      String
+  messages    Message[]
+  state       String?
+  ttl         DateTime?
+  createdAt   DateTime      @default(now())
 }
 
 model Message {
-  id             String       @id @default(cuid())
-  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  id             String         @id @default(cuid())
+  conversation   Conversation   @relation(fields: [conversationId], references: [id])
   conversationId String
   sender         String
   content        String
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime       @default(now())
 }
 
 model JobRecord {
-  id        String   @id @default(cuid())
-  type      String
-  payload   Json
-  status    String
-  createdAt DateTime @default(now())
+  id         String     @id @default(cuid())
+  type       String
+  payload    Json
+  status     String
+  createdAt  DateTime   @default(now())
 }
