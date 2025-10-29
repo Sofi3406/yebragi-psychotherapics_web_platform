@@ -1,31 +1,23 @@
 {
   "compilerOptions": {
-    /* === Core Compilation === */
-    "target": "ES2020",                    // Modern Node-compatible JS output
-    "module": "CommonJS",                  // Use CommonJS modules for Node.js
-    "moduleResolution": "Node",            // Ensure Node module resolution
-    "rootDir": "./src",                    // Source folder for input files
-    "outDir": "./dist",                    // Destination for compiled JS files
-
-    /* === Type Safety & Interop === */
-    "strict": true,                        // Enable all strict type checks
-    "esModuleInterop": true,               // Default import compatibility
-    "skipLibCheck": true,                  // Skip type checking .d.ts files
-    "forceConsistentCasingInFileNames": true, // Ensure import paths are case-sensitive
-
-    /* === Express + Prisma Integration === */
-    "typeRoots": ["./node_modules/@types", "./src/types"], // Include custom Request types
-    "resolveJsonModule": true,             // Allow importing JSON files
-    "noImplicitAny": false,                // Optional: relax if you need gradual typing
-
-    /* === Output Tuning === */
-    "sourceMap": true,                     // Enable debug source maps
-    "removeComments": true                 // Cleaner build output
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "resolveJsonModule": true,
+    "noImplicitAny": false,
+    "sourceMap": true,
+    "removeComments": true
   },
-
-  /* === File Inclusion Rules === */
   "include": [
     "src/**/*.ts",
+    "tests/**/*.ts",
     "scripts/**/*.ts",
     "prisma/**/*.ts"
   ],

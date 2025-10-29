@@ -3,6 +3,7 @@ import { z } from "zod";
 // ✅ Register Schema
 export const registerSchema = z.object({
   body: z.object({
+    fullName: z.string().min(2),    // Required for registration!
     email: z.string().email(),
     password: z.string().min(6),
   }),

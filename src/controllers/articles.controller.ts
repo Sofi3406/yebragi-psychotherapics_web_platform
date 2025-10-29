@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import prisma from "../prismaClient";
-import { scraperService } from "../services/scraperService";
+import { scraperService } from "../services/scraperService"; 
 
-// Define the expected structure for scraped articles
 type ScrapedArticle = {
   title: string;
   url: string;
@@ -21,8 +20,8 @@ export class ArticlesController {
         whereClause = {
           OR: [
             { title: { contains: search as string, mode: "insensitive" } },
-            { content: { contains: search as string, mode: "insensitive" } },
-          ],
+            { content: { contains: search as string, mode: "insensitive" } }
+          ]
         };
       }
 
@@ -32,9 +31,9 @@ export class ArticlesController {
           skip,
           take: Number(limit),
           orderBy: { createdAt: "desc" },
-          include: { scrapeJob: true },
+          include: { scrapeJob: true }
         }),
-        prisma.article.count({ where: whereClause }),
+        prisma.article.count({ where: whereClause })
       ]);
 
       return res.json({
@@ -43,8 +42,8 @@ export class ArticlesController {
           page: Number(page),
           limit: Number(limit),
           total,
-          pages: Math.ceil(total / Number(limit)),
-        },
+          pages: Math.ceil(total / Number(limit))
+        }
       });
     } catch (error) {
       console.error("Error listing articles:", error);
@@ -52,13 +51,13 @@ export class ArticlesController {
     }
   }
 
-  // Retrieve a single article by ID
+  // Retrieve a single article by ID (Int in Prisma model)
   async getOne(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const article = await prisma.article.findUnique({
-        where: { id },
-        include: { scrapeJob: true },
+        where: { id: Number(id) }, // <--- Ensure Int for Prisma
+        include: { scrapeJob: true }
       });
 
       if (!article) {
@@ -79,12 +78,12 @@ export class ArticlesController {
 
       // Create a new scrape job record
       const scrapeJob = await prisma.scrapeJob.create({
-        data: { status: "RUNNING" },
+        data: { status: "RUNNING" }
       });
 
       try {
         // Execute scraping service
-        const scrapedArticles = (await scraperService.runSite(site)) as ScrapedArticle[];
+        const scrapedArticles = await scraperService.runSite(site) as ScrapedArticle[];
 
         // Upsert scraped articles
         const savedArticles = await Promise.all(
@@ -94,14 +93,15 @@ export class ArticlesController {
               update: {
                 title: articleData.title,
                 content: articleData.content ?? "",
-                scrapeJobId: scrapeJob.id,
+                scrapeJobId: scrapeJob.id
               },
               create: {
                 title: articleData.title,
                 content: articleData.content ?? "",
                 url: articleData.url,
                 scrapeJobId: scrapeJob.id,
-              },
+                status: "PENDING"
+              }
             })
           )
         );
@@ -109,27 +109,27 @@ export class ArticlesController {
         // Mark job as completed
         await prisma.scrapeJob.update({
           where: { id: scrapeJob.id },
-          data: { status: "COMPLETED" },
+          data: { status: "COMPLETED" }
         });
 
         return res.status(201).json({
           message: "Scrape job completed successfully",
           jobId: scrapeJob.id,
           articlesScraped: savedArticles.length,
-          articles: savedArticles,
+          articles: savedArticles
         });
       } catch (scrapeError) {
         // Mark job as failed if scraping errors occur
         await prisma.scrapeJob.update({
           where: { id: scrapeJob.id },
-          data: { status: "FAILED" },
+          data: { status: "FAILED" }
         });
 
         console.error("Scraping error:", scrapeError);
         return res.status(500).json({
           message: "Scraping failed",
           jobId: scrapeJob.id,
-          error: "Failed to scrape articles",
+          error: "Failed to scrape articles"
         });
       }
     } catch (error) {
@@ -150,10 +150,10 @@ export class ArticlesController {
           take: Number(limit),
           orderBy: { createdAt: "desc" },
           include: {
-            articles: { select: { id: true, title: true, url: true } },
-          },
+            articles: { select: { id: true, title: true, url: true } }
+          }
         }),
-        prisma.scrapeJob.count(),
+        prisma.scrapeJob.count()
       ]);
 
       return res.json({
@@ -162,8 +162,8 @@ export class ArticlesController {
           page: Number(page),
           limit: Number(limit),
           total,
-          pages: Math.ceil(total / Number(limit)),
-        },
+          pages: Math.ceil(total / Number(limit))
+        }
       });
     } catch (error) {
       console.error("Error fetching scrape jobs:", error);

@@ -3,9 +3,7 @@ import prisma from "../prismaClient";
 import { extractPsychologyToday } from "../extractors/psychologyToday";
 
 export class ScraperService {
-  /**
-   * Run a site scraper and sync results to DB.
-   */
+  /** Run a site scraper and sync results to DB. */
   async runSite(site: "psychologyToday") {
     console.log(`🕸️ Starting scrape for: ${site}`);
 
@@ -24,7 +22,7 @@ export class ScraperService {
       });
 
       // 2. Extract articles
-      const articles = extractPsychologyToday(response.data);
+      const articles = await extractPsychologyToday(response.data);
 
       // 3. Save (create or update) in DB
       for (const art of articles) {
@@ -32,28 +30,25 @@ export class ScraperService {
           where: { url: art.url },
           update: {
             title: art.title,
-            content: art.content,
-            source: "psychologyToday",
-            status: "PUBLISHED",
+            content: art.content ?? "",
+            status: "PUBLISHED", // Only if this exists in your schema
             updatedAt: new Date(),
           },
           create: {
             title: art.title,
             url: art.url,
-            content: art.content,
-            source: "psychologyToday",
+            content: art.content ?? "",
             status: "PUBLISHED",
-            publishedAt: new Date(),
           },
         });
       }
 
-      console.log(`✅ Saved ${articles.length} Psychology Today articles to DB`);
+      console.log(`✅ Saved ${articles.length} Psychology Today articles to DB`);
       return articles;
     } catch (error) {
-      console.error("⚠️ Error fetching Psychology Today articles:", error);
+      console.error("⚠️ Error fetching Psychology Today articles:", error);
 
-      // Fallback — mock data if real scraping fails
+      // Fallback mock data if real scraping fails
       const fallback = [
         {
           title: "Understanding Anxiety: A Comprehensive Guide",
@@ -75,29 +70,25 @@ export class ScraperService {
         },
       ];
 
-      // Insert mock data for testing
       for (const art of fallback) {
         await prisma.article.upsert({
           where: { url: art.url },
           update: {
             title: art.title,
-            content: art.content,
-            source: "psychologyToday",
+            content: art.content ?? "",
             status: "PUBLISHED",
             updatedAt: new Date(),
           },
           create: {
             title: art.title,
             url: art.url,
-            content: art.content,
-            source: "psychologyToday",
+            content: art.content ?? "",
             status: "PUBLISHED",
-            publishedAt: new Date(),
           },
         });
       }
 
-      console.log(`🧩 Inserted ${fallback.length} mock Psychology Today articles`);
+      console.log(`🧩 Inserted ${fallback.length} mock Psychology Today articles`);
       return fallback;
     }
   }

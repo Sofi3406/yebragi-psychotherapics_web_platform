@@ -4,36 +4,34 @@ import prisma from "../prismaClient";
 import { sendOtpQueue } from "../queues/sendOtpQueue";
 
 class AuthService {
-  // 🔹 Register new user + enqueue OTP
+  // Register new user + enqueue OTP
   async register(email: string, password: string, fullName: string) {
-    // Check if user exists
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) throw new Error("User already exists");
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
       data: {
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         fullName,
       },
     });
 
-    // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Store OTP in DB with expiry (5 min)
     await prisma.jobRecord.create({
       data: {
         type: "OTP",
-        payload: { email, otp },
+        payload: { email: normalizedEmail, otp },
         status: "PENDING",
       },
     });
 
-    // Enqueue job for email delivery
-    await sendOtpQueue.add("send-otp", { email, otp });
+    await sendOtpQueue.add("send-otp", { email: normalizedEmail, otp });
 
     return {
       message: "User registered successfully. OTP will be sent via email.",
@@ -41,9 +39,11 @@ class AuthService {
     };
   }
 
-  // 🔹 Login with email + password
+  // Login with email + password
   async login(email: string, password: string) {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (!user) throw new Error("Invalid credentials");
 
     const valid = await bcrypt.compare(password, user.password);
@@ -69,7 +69,7 @@ class AuthService {
     };
   }
 
-  // 🔹 Refresh access token
+  // Refresh access token
   async refresh(refreshToken: string) {
     try {
       const decoded = jwt.verify(
@@ -83,28 +83,50 @@ class AuthService {
         { expiresIn: "15m" }
       );
 
-      return { accessToken };
+      return { accessToken, refreshToken };
     } catch {
       throw new Error("Invalid refresh token");
     }
   }
 
-  // 🔹 Verify OTP
+  // Verify OTP robustly with full debug output
   async verify(email: string, code: string) {
-    const job = await prisma.jobRecord.findFirst({
-      where: { type: "OTP", payload: { path: ["email"], equals: email } },
-      orderBy: { createdAt: "desc" }, // latest OTP
-    });
+    const normalizedEmail = email.toLowerCase().trim();
 
-    if (!job) throw new Error("No OTP found for this user");
+    // Fetch up to 10 most recent OTP jobs from DB (for robustness)
+    const debugJobs = await prisma.$queryRaw<
+      Array<{ id: string, payload: any, createdAt: Date, type: string }>
+    >`SELECT * FROM "JobRecord"
+      WHERE type = 'OTP'
+      ORDER BY "createdAt" DESC
+      LIMIT 10`;
 
-    const storedOtp = (job.payload as any).otp;
-    if (storedOtp !== code) throw new Error("Invalid OTP");
+    console.log("DEBUG: recent JobRecords (OTP):", JSON.stringify(debugJobs, null, 2));
 
-    // Mark job as completed
+    // Use pure JS filter for robustness (avoids SQL/driver JSON ambiguity)
+    const job = debugJobs.find(j =>
+      typeof j.payload?.email === 'string' &&
+      j.payload.email.toLowerCase().trim() === normalizedEmail
+    );
+
+    if (!job) {
+      console.error("No OTP job found for:", normalizedEmail);
+      throw new Error("No OTP found for this user");
+    }
+
+    if (job.payload.otp !== code) {
+      console.error("Wrong OTP for", normalizedEmail, "Expected:", job.payload.otp, "Received:", code);
+      throw new Error("Invalid OTP");
+    }
+
     await prisma.jobRecord.update({
       where: { id: job.id },
       data: { status: "COMPLETED" },
+    });
+
+    await prisma.user.update({
+      where: { email: normalizedEmail },
+      data: { isVerified: true },
     });
 
     return { message: "Verification successful" };
