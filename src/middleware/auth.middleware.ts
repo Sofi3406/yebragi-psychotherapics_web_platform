@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
 export interface AuthRequest extends Request {
-  user?: any;
+  user?: any; // This will hold the decoded JWT payload, including userId
 }
 
 export const authMiddleware = (
@@ -11,6 +11,7 @@ export const authMiddleware = (
   next: NextFunction
 ) => {
   const authHeader = req.headers.authorization;
+
   if (!authHeader) {
     return res.status(401).json({ message: "Authorization header missing" });
   }
@@ -21,10 +22,7 @@ export const authMiddleware = (
   }
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "secret"
-    ) as any;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret") as any;
     req.user = decoded;
     next();
   } catch (error) {

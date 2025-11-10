@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { logger } from "../utils/logger";
 
-// Logs each request and its duration
+// Middleware to log each request and its duration
 export const requestLoggingMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   const start = Date.now();
   const { method, url, ip } = req;
@@ -10,6 +10,7 @@ export const requestLoggingMiddleware = (req: Request, res: Response, next: Next
   const requestId = Math.random().toString(36).substring(2, 11);
   (req as any).requestId = requestId;
 
+  // Log the start of the request
   logger.info(`Request started: ${method} ${url}`, {
     requestId,
     ip,
@@ -24,6 +25,7 @@ export const requestLoggingMiddleware = (req: Request, res: Response, next: Next
     const duration = Date.now() - start;
     const { statusCode } = res;
 
+    // Log the completion of the request
     logger.info(`Request completed: ${method} ${url}`, {
       requestId,
       statusCode,
@@ -37,7 +39,7 @@ export const requestLoggingMiddleware = (req: Request, res: Response, next: Next
   next();
 };
 
-// Logs errors and sends structured JSON response
+// Middleware to log errors and send structured JSON response
 export const errorLoggingMiddleware = (
   err: Error,
   req: Request,
@@ -46,6 +48,7 @@ export const errorLoggingMiddleware = (
 ): void => {
   const requestId = (req as any).requestId || "unknown";
 
+  // Log the error details
   logger.error(`Unhandled error: ${err.message}`, {
     requestId,
     stack: err.stack,
@@ -56,11 +59,12 @@ export const errorLoggingMiddleware = (
     params: req.params,
   }, "ERROR");
 
+  // Send a structured JSON response for the error
   res.status(500).json({
     message: "Internal server error",
     requestId,
     timestamp: new Date().toISOString(),
   });
 
-  next(err);
+  next(err); 
 };

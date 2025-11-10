@@ -180,3 +180,11 @@ model JobRecord {
   status     String
   createdAt  DateTime   @default(now())
 }
+model Otp {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}

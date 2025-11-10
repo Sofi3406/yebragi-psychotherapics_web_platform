@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authController } from "../controllers/auth.controller";
+import { authController } from "../controllers/auth.controller"; 
 import { validateRequest } from "../middleware/validateRequest";
 import {
   registerSchema,
@@ -10,10 +10,18 @@ import {
 
 const router = Router();
 
-// Public routes with validation
+
+// Route for user registration
 router.post("/register", validateRequest(registerSchema), authController.register);
+router.post("/resend-otp", authController.resendOtp);
+
+// Route for user login
 router.post("/login", validateRequest(loginSchema), authController.login);
+
+// Route for refreshing tokens
 router.post("/refresh", validateRequest(refreshSchema), authController.refresh);
+
+// Route for verifying user accounts
 router.post("/verify", validateRequest(verifySchema), authController.verify);
 
 export default router;

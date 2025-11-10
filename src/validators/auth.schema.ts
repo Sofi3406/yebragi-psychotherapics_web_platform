@@ -1,33 +1,57 @@
 import { z } from "zod";
 
-// ✅ Register Schema
+/* ✅ Register Schema */
 export const registerSchema = z.object({
-  body: z.object({
-    fullName: z.string().min(2),    // Required for registration!
-    email: z.string().email(),
-    password: z.string().min(6),
-  }),
+  fullName: z
+    .string({
+      required_error: "Full name is required!",
+    })
+    .min(2, "Full name must be at least 2 characters long!"),
+  email: z
+    .string({
+      required_error: "Email is required!",
+    })
+    .email("Invalid email format!"),
+  password: z
+    .string({
+      required_error: "Password is required!",
+    })
+    .min(6, "Password must be at least 6 characters long!"),
 });
 
-// ✅ Login Schema
+/* ✅ Login Schema */
 export const loginSchema = z.object({
-  body: z.object({
-    email: z.string().email(),
-    password: z.string().min(6),
-  }),
+  email: z
+    .string({
+      required_error: "Email is required!",
+    })
+    .email("Invalid email format!"),
+  password: z
+    .string({
+      required_error: "Password is required!",
+    })
+    .min(6, "Password must be at least 6 characters long!"),
 });
 
-// ✅ Refresh Schema
+/* ✅ Refresh Token Schema */
 export const refreshSchema = z.object({
-  body: z.object({
-    refreshToken: z.string().min(10),
-  }),
+  refreshToken: z
+    .string({
+      required_error: "Refresh token is required!",
+    })
+    .min(10, "Refresh token must be at least 10 characters long!"),
 });
 
-// ✅ Verify OTP Schema
+/* ✅ Verify OTP Schema */
 export const verifySchema = z.object({
-  body: z.object({
-    email: z.string().email(),
-    otp: z.string().length(6),
-  }),
+  email: z
+    .string({
+      required_error: "Email is required!",
+    })
+    .email("Invalid email format!"),
+  otp: z
+    .string({
+      required_error: "OTP is required!",
+    })
+    .length(6, "OTP must be exactly 6 characters long!"),
 });
