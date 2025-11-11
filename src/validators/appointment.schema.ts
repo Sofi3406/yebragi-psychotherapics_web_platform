@@ -1,10 +1,9 @@
 import { z } from "zod";
 
 export const createAppointmentSchema = z.object({
-  patientId: z.string().uuid(),
   therapistId: z.string().uuid(),
   slotId: z.string().uuid(),
-  notes: z.string().optional(),
+  patientId: z.string().uuid().optional(),
 });
 
 export const updateAppointmentSchema = z.object({

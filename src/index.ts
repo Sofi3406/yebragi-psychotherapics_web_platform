@@ -11,6 +11,7 @@ import meetRoutes from "./routes/meet.routes";
 import notifyRoutes from "./routes/notify.routes";
 import adminArticlesRoute from "./routes/adminArticles.route";
 import userRoutes from "./routes/user.routes";
+import therapistRoutes from "./routes/therapist.routes";
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use("/api/v1/appointments", appointmentRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/articles", articlesRoutes);
 app.use("/api/v1/chat", chatRoutes);
+app.use("/api/v1/therapists", therapistRoutes);
 
 /* ✅ Health check route */
 app.get("/health", (req, res) => {

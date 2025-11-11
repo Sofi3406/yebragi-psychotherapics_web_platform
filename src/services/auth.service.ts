@@ -82,7 +82,13 @@ class AuthService {
       message: "Login successful",
       accessToken,
       refreshToken,
-      user: { id: user.id, email: user.email, role: user.role },
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        isVerified: user.isVerified,
+      },
     };
   }
 
@@ -133,12 +139,36 @@ class AuthService {
       data: { verified: true },
     });
 
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { email: normalizedEmail },
       data: { isVerified: true },
     });
 
-    return { message: "Verification successful" };
+    // Issue tokens after successful verification
+    const secret = process.env.JWT_SECRET || "secret";
+    const accessToken = jwt.sign(
+      { id: updatedUser.id, role: updatedUser.role },
+      secret,
+      { expiresIn: "15m" }
+    );
+    const refreshToken = jwt.sign(
+      { id: updatedUser.id },
+      secret,
+      { expiresIn: "7d" }
+    );
+
+    return {
+      message: "Email verified successfully",
+      accessToken,
+      refreshToken,
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        fullName: updatedUser.fullName,
+        role: updatedUser.role,
+        isVerified: updatedUser.isVerified,
+      },
+    };
   }
 
   // ✅ Resend OTP (now properly throttled)

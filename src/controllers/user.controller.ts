@@ -4,7 +4,7 @@ import { AuthRequest } from "../middleware/auth.middleware";
 
 const getProfile = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId; // Assuming userId is stored in the token
+    const userId = req.user?.id; // User ID from JWT token
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -12,11 +12,30 @@ const getProfile = async (req: AuthRequest, res: Response) => {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
+        id: true,
         fullName: true,
         email: true,
         role: true,
         isVerified: true,
         createdAt: true,
+        therapistProfile: {
+          select: {
+            id: true,
+            bio: true,
+            licenseNumber: true,
+            specializations: {
+              include: {
+                specialization: {
+                  select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -33,7 +52,7 @@ const getProfile = async (req: AuthRequest, res: Response) => {
 
 const updateProfile = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }

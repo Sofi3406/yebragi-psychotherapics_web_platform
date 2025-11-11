@@ -1,23 +1,29 @@
 // src/controllers/chat.controller.ts
-import { Request, Response } from "express";
+import { Response } from "express";
 import prisma from "../prismaClient";
 import { chatbotService } from "../services/chatbot.service";
+import { AuthRequest } from "../middleware/auth.middleware";
 
 export const chatController = {
-  async sendMessage(req: Request, res: Response) {
+  async sendMessage(req: AuthRequest, res: Response) {
     try {
-      const { userId, message } = req.body;
+      const message = (req.body.message ?? req.body.content ?? "").toString();
+      const authUserId = req.user?.id as string | undefined;
+
+      if (!authUserId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
 
       // Step 1: persist message in conversation
       let conversation = await prisma.conversation.findFirst({
-        where: { userId },
+        where: { userId: authUserId },
         include: { messages: true },
       });
 
       if (!conversation) {
         conversation = await prisma.conversation.create({
           data: {
-            userId,
+            userId: authUserId,
             messages: {
               create: { content: message, sender: "USER" },
             },
@@ -47,7 +53,7 @@ export const chatController = {
         },
       });
 
-      res.json({ reply: botReply });
+      res.json({ response: botReply[0], conversationId: conversation.id });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

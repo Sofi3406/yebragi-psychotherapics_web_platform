@@ -96,11 +96,8 @@ const verify = async (req: Request, res: Response) => {
     }
 
     const result = await authService.verify(email, otp);
-    if (result?.message && /verified/i.test(result.message)) {
-      return res.status(200).json(result);
-    }
-
-    return res.status(400).json({ message: "Invalid or expired verification code" });
+    // If service returns without throwing, it's a success; pass through the payload
+    return res.status(200).json(result);
   } catch (error: any) {
     logger.error("❌ Verify error", error.message, "auth.controller");
     return res
