@@ -34,7 +34,7 @@ export const Footer = () => {
             <p className="text-gray-400">
               Email: support@yebragi.com
               <br />
-              Phone: +1 (555) 123-4567
+              Phone: +251930670088
             </p>
           </div>
         </div>
@@ -45,6 +45,10 @@ export const Footer = () => {
     </footer>
   );
 };
+
+
+
+
 
 
 

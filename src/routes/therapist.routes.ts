@@ -15,3 +15,6 @@ router.delete("/availability/:slotId", authMiddleware, therapistController.delet
 
 export default router;
 
+
+
+

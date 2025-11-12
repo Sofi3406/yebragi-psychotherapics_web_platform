@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { LogIn, Mail, Lock } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -16,8 +15,11 @@ export const Login = () => {
     setLoading(true);
 
     try {
-      await login(email, password);
-      navigate('/dashboard');
+      const user = await login(email, password);
+      console.debug('[Login] returned user:', user);
+  const role = (user?.role || '').toString().toUpperCase();
+  if (role === 'THERAPIST') navigate('/therapist/dashboard');
+  else navigate('/dashboard');
     } catch (error) {
       // Error handled by auth context
     } finally {
@@ -96,6 +98,10 @@ export const Login = () => {
     </div>
   );
 };
+
+
+
+
 
 
 

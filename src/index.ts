@@ -15,11 +15,23 @@ import therapistRoutes from "./routes/therapist.routes";
 
 const app = express();
 
-// CORS setup
+// CORS setup - allow frontend dev ports and configurable origin via env
+const allowedOrigins = [
+  process.env.FRONTEND_ORIGIN || "http://localhost:5173",
+  "http://localhost:5174",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173", 
-    credentials: true, 
+    origin: (origin, callback) => {
+      // allow requests with no origin (like curl/postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        return callback(null, true);
+      }
+      return callback(new Error("CORS policy: Origin not allowed"));
+    },
+    credentials: true,
   })
 );
 

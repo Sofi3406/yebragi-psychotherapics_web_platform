@@ -27,8 +27,11 @@ export const Verify = () => {
     setLoading(true);
 
     try {
-      await verify(email, otp);
-      navigate('/dashboard');
+      const user = await verify(email, otp);
+      console.debug('[Verify] returned user:', user);
+  const role = (user?.role || '').toString().toUpperCase();
+  if (role === 'THERAPIST') navigate('/therapist/dashboard');
+  else navigate('/dashboard');
     } catch (error) {
       // Error handled by auth context
     } finally {
@@ -104,6 +107,10 @@ export const Verify = () => {
     </div>
   );
 };
+
+
+
+
 
 
 

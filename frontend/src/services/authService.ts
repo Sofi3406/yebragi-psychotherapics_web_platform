@@ -1,67 +1,69 @@
-import api from './api';
+const API_URL = (import.meta.env.VITE_API_URL as string) || "http://localhost:3000";
 
-export interface RegisterData {
-  email: string;
-  password: string;
-  fullName: string;
-  role?: 'PATIENT' | 'THERAPIST' | 'ADMIN';
+async function handleResponse(res: Response) {
+	const text = await res.text();
+	try {
+		const json = text ? JSON.parse(text) : {};
+		if (!res.ok) throw json || new Error(res.statusText);
+		return json;
+	} catch (err) {
+		if (!res.ok) throw err;
+		return {} as any;
+	}
 }
 
-export interface LoginData {
-  email: string;
-  password: string;
+async function register(email: string, password: string, fullName: string) {
+	const res = await fetch(`${API_URL}/api/v1/auth/register`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ email, password, fullName }),
+	});
+	return await handleResponse(res);
 }
 
-export interface VerifyData {
-  email: string;
-  otp: string;
+async function login(email: string, password: string) {
+	const res = await fetch(`${API_URL}/api/v1/auth/login`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ email, password }),
+	});
+	return await handleResponse(res);
 }
 
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    email: string;
-    fullName: string;
-    role: string;
-    isVerified: boolean;
-  };
+async function verify(email: string, otp: string) {
+	const res = await fetch(`${API_URL}/api/v1/auth/verify`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ email, otp }),
+	});
+	return await handleResponse(res);
 }
 
-export interface User {
-  id: string;
-  email: string;
-  fullName: string;
-  role: string;
-  isVerified: boolean;
+async function resendOtp(email: string) {
+	const res = await fetch(`${API_URL}/api/v1/auth/resend-otp`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ email }),
+	});
+	return await handleResponse(res);
+}
+
+async function refresh(refreshToken: string) {
+	const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ refreshToken }),
+	});
+	return await handleResponse(res);
 }
 
 export const authService = {
-  register: async (data: RegisterData) => {
-    const response = await api.post<AuthResponse>('/api/v1/auth/register', data);
-    return response.data;
-  },
-
-  login: async (data: LoginData) => {
-    const response = await api.post<AuthResponse>('/api/v1/auth/login', data);
-    return response.data;
-  },
-
-  verify: async (data: VerifyData) => {
-    const response = await api.post<AuthResponse>('/api/v1/auth/verify', data);
-    return response.data;
-  },
-
-  resendOtp: async (email: string) => {
-    const response = await api.post('/api/v1/auth/resend-otp', { email });
-    return response.data;
-  },
-
-  refresh: async (refreshToken: string) => {
-    const response = await api.post<{ accessToken: string }>('/api/v1/auth/refresh', {
-      refreshToken,
-    });
-    return response.data;
-  },
+	register,
+	login,
+	verify,
+	resendOtp,
+	refresh,
 };
+
+export default authService;
+
